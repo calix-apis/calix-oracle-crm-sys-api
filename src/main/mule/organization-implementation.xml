@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="organization-implementation-sub-flow" doc:id="62d5cd83-6984-4a40-ae67-5b37babb7cce" >
+		<choice doc:name="Checking operation to be performed" doc:id="f9e129c7-f4e8-4b35-bc9a-85d3900bf45b" >
+			<when expression='#[vars.operation == "FindOrganization"]' >
+				<flow-ref doc:name="Refer to calix-crm-find-organization-sub-flow" doc:id="a998f48c-34ed-48f0-92bf-54c15b390a7a" name="calix-crm-find-organization-sub-flow" />
+			</when>
+			<when expression='#[vars.operation == "CreateOrganization"]' >
+				<flow-ref doc:name="Refer to calix-crm-create-organization-sub-flow" doc:id="16d33204-ce62-4e28-ba28-00c6a88e8058" name="calix-crm-create-organization-sub-flow" />
+			</when>
+			<when expression='#[vars.operation == "UpdateOrganization"]' >
+				<flow-ref doc:name="Refer to calix-crm-update-organization-sub-flow" doc:id="969e532a-5c8e-4c3f-9c10-566cecc247c7" name="calix-crm-update-organization-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "MergeOrganization"]'>
+				<flow-ref doc:name="Refer to calix-crm-merge-organization-sub-flow" doc:id="736e80db-ab3f-4f7c-a266-abb177932b27" name="calix-crm-merge-organization-sub-flow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="LOG INFO - Message" doc:id="25d43b15-272d-4da4-815a-a81d2b309d22" message="Invalid Operation For Organization Flow"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="calix-crm-find-organization-sub-flow" doc:id="93f8a381-8a3a-4c3a-b183-e3dabab1ffee" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="4c31c1e5-4ea9-4f2f-b441-4683f88e98b0" message='Find Organization For Account Id Flow Started - #[vars.inputData.customerAccountId default ""]' />
+		<ee:transform doc:name="DW Mapping For Find Organization" doc:id="1354d31a-816b-4867-99ad-3e2f347dc681" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/adf/svc/types/
+---
+{
+	ns0#findOrganization: {
+		ns0#findCriteria: {
+			ns01#fetchStart: 0,
+			ns01#fetchSize: -1,
+			ns01#filter: {
+				ns01#group: {
+					ns01#upperCaseCompare: false,
+					ns01#item: {
+						ns01#upperCaseCompare: false,
+						ns01#attribute: "OrigSystemReference",
+						ns01#operator: "=",
+						ns01#value: "P_" ++ vars.inputData.customerAccountId default ""
+					},
+					ns01#item: {
+						ns01#conjunction: "Or",
+						ns01#attribute: "OriginalSystemReference",
+						ns01#nested: {
+							ns01#group: {
+								ns01#item: {
+								ns01#attribute: "OrigSystemReference",
+								ns01#operator: "=",
+								ns01#value: "P_" ++ vars.inputData.customerAccountId default ""
+							}
+						}
+					}
+				}
+			}
+		},
+		ns01#excludeAttribute: false
+	},
+	ns0#findControl: {
+		ns01#retrieveAllTranslations: true
+	}
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Find Organization" doc:id="756e7f4a-9411-42f7-8574-9d3fa0bfc314" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="findOrganization" doc:name="HTTP SOAP WebService - FindOrganization Operation" doc:id="d09b132b-83ff-4f71-ad0d-2aa3403f1631" config-ref="Web_Service_Consumer_Config_Organization" />
+		<ee:transform doc:name="DW Mapping For Find Organization Response" doc:id="196ad939-a6a9-410b-a90f-062e0807f0ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.findOrganizationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Find Organisation" doc:id="be854f45-c6e5-4d03-98b7-7a3cfd0e387c" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="96783389-0f7a-4403-b3dd-5f167063c530" message='Find Organization For Account Id Flow Ended - #[vars.inputData.customerAccountId default ""]' />
+	</sub-flow>
+	<sub-flow name="calix-crm-create-organization-sub-flow" doc:id="424831dd-ca6d-41f7-9d39-019b1fccf735" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="6060ca2d-2ea7-4335-b9f3-404645c62e77" message='Create Organization For Account Id Flow Started - #[vars.inputData.customerAccountId default ""]' />
+		<ee:transform doc:name="DW Mapping For Create Organization" doc:id="50cb0000-ee9a-4019-8e4d-9dec996752c6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/
+ns ns02 http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/
+---
+{
+    ns0#createOrganization: {
+        ns0#organizationParty: {
+            ns01#CreatedByModule: "HZ_WS",
+            ns01#OrganizationProfile: {
+                ns01#OrganizationName: upper(vars.inputData.customerAccountName default ""),
+                ns01#OrigSystemReference: "P_" ++ vars.inputData.customerAccountId default "",
+                ns01#CreatedByModule: "HZ_WS",
+                ns01#PartyType: "ORGANIZATION"                
+            },
+            ns01#OriginalSystemReference: {
+            	ns02#OwnerTableName: "HZ_PARTIES",
+            	ns02#OrigSystemReference: "P_" ++ vars.inputData.customerAccountId default "",
+            	ns02#OrigSystem: "SFDC",
+            	ns02#CreatedByModule: "HZ_WS"
+            },
+            ns01#PartyUsageAssignment: {
+                ns02#PartyUsageCode: "CUSTOMER",
+                ns02#CreatedByModule: "HZ_WS"
+            }
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Create Organization" doc:id="2e1463aa-0e6b-43e1-9dfd-3fadf56c9561" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="createOrganization" doc:name="HTTP SOAP WebService - CreateOrganization Operation" doc:id="84c446d0-b2ee-4e66-91f2-de9454ab8bf0" config-ref="Web_Service_Consumer_Config_Organization" />
+		<ee:transform doc:name="DW Mapping For Create Organization Response" doc:id="4e66324f-7f83-45da-bd4e-0b1e2c76e9bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.createOrganizationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Create Organisation" doc:id="5e31e4f0-4938-4c40-92d9-efbe2ff9e635" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="79264555-b8b4-4452-85ee-f689aa59652f" message='Create Organization For Account Id Flow Ended - #[vars.inputData.customerAccountId default ""]' />
+	</sub-flow>
+	<sub-flow name="calix-crm-update-organization-sub-flow" doc:id="4edcf9e4-0c9e-451a-939e-e5bd9efcdc9f" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="78fd29f7-754c-49a2-9a98-98787d38ee60" message='Update Organization For Party Id Flow Started - #[vars.inputData.partyId default ""]' />
+		<ee:transform doc:name="DW Mapping For Update Organization" doc:id="4f62b95b-1135-4cc0-97df-1e95ef6a5530" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/apps/cdm/foundation/parties/organizationService/
+---
+{
+    ns0#updateOrganization: {
+        ns0#organizationParty: {
+            ns01#PartyId: vars.inputData.partyId default "",
+            ns01#OrganizationProfile: {
+                ns01#OrganizationName: upper(vars.inputData.customerAccountName default "")
+            }
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Update Organization" doc:id="0c34a005-a764-406f-89d3-01b623b36817" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="updateOrganization" doc:name="HTTP SOAP WebService - UpdateOrganization Operation" doc:id="6fe4be36-67a3-4320-af83-0ea1a70e198c" config-ref="Web_Service_Consumer_Config_Organization" />
+		<ee:transform doc:name="DW Mapping For Update Organization Response" doc:id="852de767-08f6-44f7-b63e-e6dbf91b883d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.updateOrganizationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Update Organization" doc:id="b3000fd0-94b3-484f-88c0-8e12059553a4" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="35797f38-56c9-4755-a88b-1dd9cc64962e" message='Update Organization For Party Id Flow Ended - #[vars.inputData.partyId default ""]' />
+	</sub-flow>
+	<sub-flow name="calix-crm-merge-organization-sub-flow" doc:id="63c921c0-4d68-4bd4-91f0-3069aebc1eaf" >
+		<logger level="INFO" doc:name="LOG - Yet To Implement" doc:id="50baa05c-5cde-41a3-9f9f-aef966f759ad" />
+	</sub-flow>
+</mule>

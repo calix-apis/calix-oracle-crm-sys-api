@@ -1,0 +1,88 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  
+api:
+  id: "12345"
+
+oracle-web-service:
+  person:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com//crmService/FoundationPartiesPersonService?wsdl"
+    service: "PersonService"
+    port: "PersonServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesPersonService"
+    
+  customer:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com/crmService/CustomerAccountService?wsdl"
+    service: "CustomerAccountService"
+    port: "CustomerAccountServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/CustomerAccountService"
+  
+  organization:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesOrganizationService?wsdl"
+    service: "OrganizationService"
+    port: "OrganizationServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesOrganizationService"
+ 
+  location:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesLocationService?wsdl"
+    service: "LocationService"
+    port: "LocationServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesLocationService"
+  
+  report:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com/xmlpserver/services/ExternalReportWSSService?wsdl"
+    service: "ExternalReportWSSService"
+    port: "ExternalReportWSSService"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/xmlpserver/services/ExternalReportWSSService"
+   
+  customerprofile:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com/fscmService/ReceivablesCustomerProfileService?wsdl"
+    service: "CustomerProfileService"
+    port: "CustomerProfileServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com/fscmService/ReceivablesCustomerProfileService"
+    
+    
+soap:
+
+  create-customer:
+    fetch-start: "0"
+    fetch-size: "-1"
+    upper-case-compare: "false"
+    attribute: "OrigSystemReference"
+    operator: "="
+    exclude-attribute: "false"
+    retrieve-all-translations: "true"
+    
+  merge-customer:
+    role-type: "CONTACT"
+    created-by-module: "HZ_WS"
+    owner-table-name: "HZ_CUST_ACCOUNT_ROLES"
+    orig-system: "SFDC"
+    
+  find-person:
+    fetch-start: "0"
+    fetch-size: "-1"
+    upper-case-compare: "false"
+    attribute: "PartyId"
+    operator: "="
+    
+  create-person:
+    created-by-module: "HZ_WS"
+    orig-system: "SFDC"
+    owner-table-name-1: "HZ_PARTIES"
+    owner-table-name-2: "HZ_RELATIONSHIPS"
+    subject-type: "PERSON"
+    subject-table-name: "HZ_PARTIES"
+    object-table-name: "HZ_PARTIES"
+    object-type: "ORGANIZATION"
+    role-type: "CONTACT"
+    relationship-type: "CONTACT"
+    relationship-code: "CONTACT_OF"
+    primary-flag: "false"
+    phone-line-type: "GEN"
+     
+  merge-person:
+    owner-table-name: "HZ_PARTIES"
+    created-by-module: "HZ_WS"
+    contact-point-purpose: "BUSINESS"

@@ -1,0 +1,13 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  
+api:
+  id: "12345"
+
+oracle-web-service:
+  person:
+    wsdl: "https://egxf-dev2.fa.us2.oraclecloud.com//crmService/FoundationPartiesPersonService?wsdl"
+    service: "PersonService"
+    port: "PersonServiceSoapHttpPort"
+    address: "https://egxf-dev2.fa.us2.oraclecloud.com:443/crmService/FoundationPartiesPersonService"

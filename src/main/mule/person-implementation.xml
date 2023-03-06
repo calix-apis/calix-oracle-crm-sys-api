@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="person-implementation-sub-flow" doc:id="25a0ebb9-ff38-406e-9431-58375ac44a99" >
+		<choice doc:name="CHECK The Operation To Be Performed" doc:id="7545e6a9-cb09-414a-8bd9-d78785471b5b" >
+			<when expression='#[vars.operation == "FindPerson"]'>
+				<flow-ref doc:name="Flow Reference to calix-crm-find-person-sub-flow" doc:id="09cf9843-6846-4905-96fc-ca0573b65258" name="calix-crm-find-person-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "CreatePerson"]'>
+				<flow-ref doc:name="Flow Ref to calix-crm-create-person-sub-flow" doc:id="dff32608-2efd-40cb-85f3-9703cf4df8a9" name="calix-crm-create-person-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "UpdatePersonProfile"]'>
+				<flow-ref doc:name="Flow Reference to calix-crm-update-person-sub-flow" doc:id="9bece5be-939d-41d8-b9c7-c1f914ccfea6" name="calix-crm-update-person-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "MergePerson"]'>
+				<flow-ref doc:name="Flow Reference to calix-crm-merge-person-sub-flow" doc:id="d7d91a40-e89b-4e14-adcd-f2bb3001ffd9" name="calix-crm-merge-person-sub-flow"/>
+			</when>
+		</choice>
+	</sub-flow>
+	<sub-flow name="calix-crm-create-person-sub-flow" doc:id="9350bb8a-18d6-45a9-925e-ca666b2592b1" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="11ddd44f-b895-43db-9ba5-6c63c05c0d7e" message="START - CreatePerson" />
+		<ee:transform doc:name="DW Mapping For CreatePerson" doc:id="04a794d7-5f95-4c07-93a9-4c9073c346e2" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pCreatePersonPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For CreatePerson" doc:id="4de5fa73-f13b-4b0c-ac01-fe18c251404c" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="createPerson" doc:name="CreatePerson SOAP Request" doc:id="52073257-8a7a-4673-af30-3d1be1e179c9" config-ref="Contact_Web_Service_Consumer_Config" />
+		<ee:transform doc:name="Convert Response To JSON" doc:id="eecef389-1e21-4a68-8ac9-97b8f252f8bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="2133179f-7010-4e29-855b-24cbe12d1236">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.createPersonResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For CreatePerson" doc:id="e7e4e28a-96b4-444b-843f-122f96dbba33" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="b70148bf-e221-4944-9a66-22e0f02eb25a" message="END - CreatePerson" />
+	</sub-flow>
+	<sub-flow name="calix-crm-update-person-sub-flow" doc:id="581f7e7e-6be4-4e73-8f39-da8953143049" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="bb7f39f2-f3f7-48d3-b694-4450d4dd1e4c" message="START - UpdatePerson" />
+		<ee:transform doc:name="Mapping For UpdatePersonProfile" doc:id="827050c7-b627-42f7-a101-c0245b5debb3" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pUpdatePersonPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For UpdatePersonProfile " doc:id="8738a6e1-d550-445e-8e66-47a34470fe8e" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="updatePersonProfile" doc:name="UpdatePersonProfile SOAP Request" doc:id="957ca980-6125-4912-bd6d-cef1e2870546" config-ref="Contact_Web_Service_Consumer_Config" />
+		<ee:transform doc:name="Convert Response To JSON" doc:id="9120a41d-4da5-49f8-93a5-5121ef26de65">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="5b13d00c-7a15-46e1-b339-5ac30938c7c8">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.updatePersonResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For UpdatePersonProfile " doc:id="d2731b4b-d181-4717-bd9b-79255930494a" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="b0e287f9-ac05-464a-8f60-d968e1cc96f6" message="END - UpdatePerson" />
+	</sub-flow>
+	<sub-flow name="calix-crm-merge-person-sub-flow" doc:id="89fa8a49-4384-4f7b-a42a-95790efd6524" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="1dfb2021-2801-47d2-a0a6-3e918feac9e7" message="START - MergePerson" />
+		<ee:transform doc:name="Mapping For MergePerson" doc:id="3294c866-d2a9-47c6-b2fc-90f15ca0ef75" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pMergePersonPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For MergePerson" doc:id="d44fc7d1-db54-49c4-b508-26290e3240b8" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume doc:name="MergePerson SOAP Request" doc:id="cca4f8a1-b579-43f7-8c6c-797c1d6f58d1" config-ref="Contact_Web_Service_Consumer_Config" operation="mergePerson"/>
+		<ee:transform doc:name="Convert Response To JSON" doc:id="7d520007-c059-48ad-8f2f-c7b41ef1a17b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="4c7cc9c9-9635-4264-a649-0a89bc4f23f4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.mergePersonResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For MergePerson" doc:id="b4c16e40-162a-430c-ac4d-93d8ebcf49ed" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="cceb6fea-37ee-402c-bdfa-2bca1f18d883" message="END - MergePerson" />
+	</sub-flow>
+	<sub-flow name="calix-crm-find-person-sub-flow" doc:id="37b6839e-f542-4476-90ae-cd1a871c2e44" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="d37885be-d486-4f1a-9652-76d6fa373981" message="START - FindPerson" />
+		<ee:transform doc:name="Mapping For FindPerson" doc:id="358e8501-7de0-4229-babe-962871b7705a" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pFindPersonPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For FindPerson" doc:id="cfbaa531-d2ed-476d-b75f-8c09314aa37f" message="#[payload]" category="com.mulesoft.logging.calix.data"/>
+		<wsc:consume doc:name="FindPerson SOAP Request" doc:id="12da3fd9-cb38-4bcc-8314-c2c0aabcb52e" config-ref="Contact_Web_Service_Consumer_Config" operation="findPerson"/>
+		<ee:transform doc:name="Convert Response To JSON" doc:id="ed72b9d6-501c-4740-82da-778fcb59f176">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="69d78d96-f6e5-4b27-8866-70da137636e0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.findPersonResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For FindPerson" doc:id="14ab4050-d70b-4c51-be9f-92699c262997" message="#[payload]" category="com.mulesoft.logging.calix.data"/>
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="2d4167e9-8809-4201-9222-45716668a6a0" message="START - FindPerson" />
+	</sub-flow>
+</mule>

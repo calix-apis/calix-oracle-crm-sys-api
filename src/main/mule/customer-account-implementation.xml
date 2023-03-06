@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="customer-account-implementation-sub-flow" doc:id="929f122c-d44f-4ffb-b0df-22e69bb12ca2" >
+		<choice doc:name="CHECK The Operation To Be Performed" doc:id="2e8f7865-f434-4db2-96ea-5c2bf0e22abb" >
+			<when expression='#[vars.operation == "FindCustomerAccount"]'>
+				<flow-ref doc:name="Flow Reference to calix-crm-find-customer-account-sub-flow" doc:id="87accff3-832f-461b-b768-eaa198dba356" name="calix-crm-find-customer-account-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "MergeCustomerAccount"]'>
+				<flow-ref doc:name="Flow Reference to calix-crm-merge-customer-account-sub-flow" doc:id="164cf1a2-ee1c-4291-a9f4-ca9011aa9134" name="calix-crm-merge-customer-account-sub-flow"/>
+			</when>
+			<when expression='#[vars.operation == "CreateCustomerAccount"]'>
+				<flow-ref doc:name="Refer to calix-crm-create-customer-account-sub-flow" doc:id="7c90c22d-8ed4-4fd9-b361-e517ba5ba3f1" name="calix-crm-create-customer-account-sub-flow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="LOG INFO - Message" doc:id="a69340b1-8c01-4edb-9107-0fe5330f674c" message="Invalid Operation For Customer Account Flow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="calix-crm-find-customer-account-sub-flow" doc:id="0c4f8eca-adcb-46dd-bbba-4953a2172e07" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="146c0cc8-95b5-428e-96cc-ce67f6897096" message='Find Customer Account For Acccount Id Flow Started - #[vars.InputData.customerAccountId default ""]'/>
+		<ee:transform doc:name="DW Mapping For FindCustomerAccount" doc:id="a22ce217-aa5a-4c7b-b27f-53530f6f74a5" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pFIndCustomerAccountPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For FindCustomerAccount" doc:id="29bd8b87-0689-4891-a704-be5f3157537b" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume doc:name="FindCustomerAccount SOAP Request" doc:id="5665f621-a846-4e4b-b477-312665160256" config-ref="Web_Service_Consumer_Config_Customer" operation="findCustomerAccount"/>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="366825bf-c952-49eb-88e0-8de6535e7175" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.findCustomerAccountResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For FindCustomerAccount" doc:id="8ea995b0-ca21-4462-b526-678e6387febf" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="a3df549f-5107-46ab-a210-28b9a3f59f00" message='Find Customer Account For Acccount Id Flow Ended - #[vars.InputData.customerAccountId default ""]'/>
+	</sub-flow>
+	<sub-flow name="calix-crm-merge-customer-account-sub-flow" doc:id="fb441b73-f628-417e-b9b5-fb1dbffc4f94" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="b2e031e9-d1ca-40c0-ab22-632319814f7e" message="START - Merge Customer" />
+		<ee:transform doc:name="DW Mapping For MergeCustomerAccount" doc:id="f991103d-2ff8-4a9c-9a86-1bfc0faa426c" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pMergeCustomerAccountPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For MergeCustomerAccount " doc:id="1b06b6b9-fcec-43f1-bdd6-4f8edec6bb1b" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume doc:name="MergeCustomerAccount SOAP Request" doc:id="5daa813d-7a51-4d4f-9fed-72fd858005f0" config-ref="Web_Service_Consumer_Config_Customer" operation="mergeCustomerAccount"/>
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="b24b9a06-6aac-4b59-b7f9-00ae617a7ef3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.mergeCustomerAccountResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For MergeCustomerAccount " doc:id="3e8fa153-390c-41bf-b242-2b940c5beb81" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="013e3439-335a-4edd-b053-eb39d8519a3c" message="END - Merge Customer" />
+	</sub-flow>
+	<sub-flow name="calix-crm-create-customer-account-sub-flow" doc:id="9063bb08-ac99-40ee-82dd-4bc7586bec64" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="6188b784-aedf-4ede-8efc-98a8fb2feb0d" message='Create Customer Account For Acccount Id Flow Started - #[vars.InputData.customerAccountId default ""]' />
+		<flow-ref doc:name="Refer to calix-crm-externalwss-report-bip-service-sub-flow" doc:id="547408ff-d7f6-4ee2-84e3-219a819cc72c" name="calix-crm-externalwss-report-bip-service-sub-flow" target="bipReportResponse"/>
+		<ee:transform doc:name="DW Mapping For Create CustomerAccount" doc:id="60e81535-30c0-4942-baa5-6f198cc14312" >
+			<ee:message >
+				<ee:set-payload resource="dataweave/pCreateCustomerAccountPayload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For CreateCustomerAccount" doc:id="679f8b42-f217-4eda-b7d1-1fe3a65f2dcc" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="createCustomerAccount" doc:name="CreateCustomerAccount SOAP Request" doc:id="80d89c6b-6497-43ff-990a-f163cc8cc423" config-ref="Web_Service_Consumer_Config_Customer" />
+		<ee:transform doc:name="DW Mapping For SOAP Response" doc:id="ff5f3703-533f-46fe-b64f-73691e9bef62" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.createCustomerAccountResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For CreateCustomerAccount" doc:id="25532884-a1ba-400b-867a-e83f962e6f6f" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="529f242d-6bf1-4207-8eee-8e98ac5cdbe4" message='Create Customer Account For Acccount Id Flow Ended - #[vars.InputData.customerAccountId default ""]' />
+	</sub-flow>
+</mule>

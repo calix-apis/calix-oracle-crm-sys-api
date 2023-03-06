@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="calix-oracle-crm-sys-api-main">
+        <http:listener path="/api/*" config-ref="calix-oracle-crm-sys-api-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <set-variable value="#[p('app.name')]" doc:name="Storing Application Name " doc:id="4016bd4c-81c9-4d71-9acf-54aa6427050e" variableName="appname" />
+        <set-variable value="#[p('mule.env')]" doc:name="Storing Environment Name" doc:id="c842ac91-0d93-4bdf-8e1f-55f9074f1302" variableName="env" />
+        <apikit:router config-ref="calix-oracle-crm-sys-api-config" />
+        <error-handler ref="global_error_handler" />
+    </flow>
+    <flow name="post:\customerAccount:application\json:calix-oracle-crm-sys-api-config">
+        <set-variable value="#[payload.operation]" doc:name="VAR operation" doc:id="4914bf65-8468-4eba-84da-385382d80188" variableName="operation" />
+        <set-variable value="#[payload.data]" doc:name="VAR inputData" doc:id="510d758d-80e9-4e50-afea-b122f09bc461" variableName="inputData" />
+        <flow-ref doc:name="Flow Reference to customer-account-implementation-sub-flow" doc:id="01a78194-9974-4b64-a346-1a5255ad904b" name="customer-account-implementation-sub-flow" />
+    </flow>
+    <flow name="post:\organization:application\json:calix-oracle-crm-sys-api-config">
+        <set-variable value="#[payload.operation]" doc:name="VAR operation" doc:id="0847d066-173c-418f-8f9f-58f1fb1f5054" variableName="operation" />
+        <set-variable value="#[payload.data]" doc:name="VAR inputData" doc:id="d18cc92f-bf1a-4134-a760-b8071cf1faae" variableName="inputData" />
+        <flow-ref doc:name="Refer to organization-implementation-sub-flow" doc:id="85db33a0-1c35-43ae-98e6-2bd368d7367d" name="organization-implementation-sub-flow" />
+    </flow>
+    <flow name="post:\location:application\json:calix-oracle-crm-sys-api-config">
+        <set-variable value="#[payload.operation]" doc:name="VAR operation" doc:id="2059ec54-4a67-40c7-8187-5ed64539e73c" variableName="operation" />
+        <set-variable value="#[payload.data]" doc:name="VAR inputData" doc:id="7a75401a-daa5-4a94-9788-2786e8e341d3" variableName="inputData" />
+        <flow-ref doc:name="Refer to location-implementation-sub-flow" doc:id="cd11194d-b85b-4add-b294-84cae195acfc" name="location-implementation-sub-flow" />
+    </flow>
+    <flow name="post:\person:application\json:calix-oracle-crm-sys-api-config">
+        <set-variable value="#[payload.operation]" doc:name="VAR operation" doc:id="88ad6239-6309-4281-b4bf-5b6f56c945de" variableName="operation" />
+        <set-variable value="#[payload.data]" doc:name="VAR inputData" doc:id="0c44c704-6f06-4a68-b19f-b01fa03dcb3f" variableName="inputData" />
+        <logger level="INFO" doc:name="LOG INFO - Start" doc:id="6c551ab5-35f5-4a7b-b339-b89bcd42136f" message="#[&quot;Start - person endpoint invoked for operation: &quot; ++ vars.operation]" />
+        <logger level="DEBUG" doc:name="LOG DEBUG - input payload received" doc:id="1be272a5-2681-49d3-bded-3e10db8ad5b7" message="#[output application/json ---&#xA;{&#xA; &quot;message&quot;: &quot;Input data received by SAPI&quot;,&#xA; &quot;data&quot;: payload&#xA;}]" category="com.mulesoft.logging.calix.data" />
+        <flow-ref doc:name="Flow Ref to person-implementation-sub-flow" doc:id="fc0a6721-c934-4367-90c5-2899b36a464a" name="person-implementation-sub-flow" />
+        <ee:transform doc:name="Transform Message" doc:id="181c361b-6010-4362-8bdf-cf0bae10dd3c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\customerProfile:application\json:calix-oracle-crm-sys-api-config">
+		<set-variable value="#[payload.operation]" doc:name="VAR operation" doc:id="ab3d9a0c-eda3-4eae-9fed-e1e7b1eb61f5" variableName="operation" />
+		<set-variable value="#[payload.data]" doc:name="VAR inputData" doc:id="13a08516-abcf-4f6a-b48c-e302322b106b" variableName="inputData" />
+		<flow-ref doc:name="Refer to customer-profile-implementation-sub-flow" doc:id="776c5b3e-09a9-405e-aad1-da1f4bd634d8" name="customer-profile-implementation-sub-flow" />
+    </flow>
+    <flow name="post:\externalReportService:application\json:calix-oracle-crm-sys-api-config">
+		<set-variable value="#[payload]" doc:name="VAR inputData" doc:id="cc77d43f-91e1-47c5-baf8-200d8aadba8d" variableName="inputData" />
+		<flow-ref doc:name="Refer to calix-crm-externalwss-report-bip-service-sub-flow" doc:id="454571f1-dda7-447e-bca7-defcb7faf35f" name="calix-crm-externalwss-report-bip-service-sub-flow"/>
+    </flow>
+</mule>

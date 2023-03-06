@@ -1,0 +1,105 @@
+#%RAML 1.0
+title: calix-oracle-crm-sys-api
+version: 1.0
+
+documentation:
+  - title: Calix Oracle CRM System API
+    content: Provides an interface for inbound and outbound communication with Oracle CRM  in form on APIs
+
+mediaType: 
+- application/json
+protocols: [HTTP]
+
+traits:
+  standard-error-responses: !include /exchange_modules/9d45aa18-9f96-4a6f-81da-5314806f680b/standard-api-error-responses/1.0.0/standard-api-error-responses.raml
+  client-id-required: !include /exchange_modules/9d45aa18-9f96-4a6f-81da-5314806f680b/client-id-enforcement-trait/1.0.0/client-id-enforcement-trait.raml
+    
+
+/organization:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes an endpoint to create/update a new organization in Oracle
+        body:
+          application/json:
+            example: 
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-organization-response.json
+ 
+
+/customerAccount:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/update a new customer Account In Oracle
+        body:
+          application/json:
+            example: 
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-customerAccount-response.json
+
+
+/location:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/update a new location in Oracle
+        body:
+          application/json:
+            example:
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-location-response.json
+
+/customerProfile:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/update a customer profile in oracle
+        body:
+          application/json:
+            example:
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-customer-profile-response.json
+
+/externalReportService:
+  post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to retrieve the BIP response from Oracle
+        body:
+          application/json:
+            example: !include examples/request/post-external-report-request.xml
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-external-report-response.xml
+
+/person:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/Update a new Contact in Oracle
+        body:
+          application/json:
+            properties:
+              operation:
+                type: string
+                enum: ["FindPerson","CreatePerson","UpdatePersonProfile","MergePerson"]
+              data:
+                type: object
+                required: true
+                example: !include examples/request/post-person-data-request.json
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-person-response.json
+
+

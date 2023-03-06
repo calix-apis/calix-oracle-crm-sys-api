@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="location-implementation-sub-flow" doc:id="9bedc35f-8cfa-4c93-ad07-e0a5a4c11ee9" >
+		<choice doc:name="Checking operation to be performed" doc:id="5eeb16cf-0a00-41ea-b4d8-e1d46cdec8db" >
+			<when expression='#[vars.operation == "FindLocation"]' >
+				<flow-ref doc:name="Refer to calix-crm-find-location-sub-flow" doc:id="227a7dab-f222-4d47-a1f0-f998e74de2c6" name="calix-crm-find-location-sub-flow" />
+			</when>
+			<when expression='#[vars.operation == "CreateLocation"]' >
+				<flow-ref doc:name="Refer to calix-crm-create-location-sub-flow" doc:id="5115d186-7320-486e-b9e7-fcd673703794" name="calix-crm-create-location-sub-flow" />
+			</when>
+			<when expression='#[vars.operation == "UpdateLocation"]' >
+				<flow-ref doc:name="Refer to calix-crm-update-location-sub-flow" doc:id="918515a0-a90e-48b0-bc0f-7a60e930540f" name="calix-crm-update-location-sub-flow" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="LOG INFO - Message" doc:id="80a54559-1b15-44e0-b420-6a578c497d7f" message="Invalid Operation For Location Flow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="calix-crm-create-location-sub-flow" doc:id="6deef9ba-3b30-492f-85e6-8aed6cb7a7ea" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="1899ae7d-9519-4566-8636-bf19a298990c" message='Create New Location For Address Id Flow Started - #[vars.inputData.addressId default ""]' />
+		<ee:transform doc:name="DW Mapping For Create Location" doc:id="6624449d-462e-47ad-a671-a47399226db2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/
+ns ns02 http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/
+---
+{
+	ns0#createLocation: {
+		ns0#location: {
+			ns01#OrigSystemReference: "L_" ++ vars.inputData.addressId default "",
+			ns01#Country: vars.inputData.countryCode default "",
+			ns01#Address1: vars.inputData.address1 default "",
+			ns01#Address2: vars.inputData.address2 default "",
+			ns01#Address3: vars.inputData.address3 default "",
+			ns01#Address4: vars.inputData.address4 default "",
+			ns01#City: vars.inputData.city default "",
+			ns01#State: vars.inputData.state default "",
+			ns01#County: vars.inputData.country default "",
+			ns01#PostalCode: vars.inputData.postalCode default "",
+			ns01#CreatedByModule: "HZ_WS",
+			ns01#OriginalSystemReference: {
+				ns02#OwnerTableName: "HZ_LOCATIONS",
+				ns02#OrigSystemReference: "L_" ++ vars.inputData.addressId default "",
+				ns02#OrigSystem: "SFDC",
+				ns02#CreatedByModule: "HZ_WS"
+			}
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Create Location" doc:id="66b6c555-91ee-466b-b094-38648a721116" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="createLocation" doc:name="HTTP SOAP WebService - CreateLocation Operation" doc:id="fbc9543b-6436-4fcc-95a8-16fc77f666aa" config-ref="Web_Service_Consumer_Config_Location" />
+		<ee:transform doc:name="DW Mapping For Create Location Response" doc:id="b705a94a-edd2-41de-8d7f-abdae7765f57" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.createLocationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Create Location" doc:id="5df22690-eba5-4c13-a6c9-2d22a87e1f57" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="b4c38ce0-b5f8-4f65-83e4-9d864fe0006a" message='Create New Location For Address Id Flow Ended - #[vars.inputData.addressId default ""]' />
+	</sub-flow>
+	<sub-flow name="calix-crm-update-location-sub-flow" doc:id="43303501-5c59-49f7-9797-a999ae5bfb72" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="dc14b4a8-ab62-42ff-94f8-4e7c296e8591" message='Update Location For Address Id Flow Started - #[vars.inputData.locationId default ""]' />
+		<ee:transform doc:name="DW Mapping For Update Location" doc:id="28cccf76-4620-48bc-8050-1096800ad01f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/
+ns ns02 http://xmlns.oracle.com/apps/cdm/foundation/parties/partyService/
+---
+{
+	ns0#updateLocation: {
+		ns0#location: {
+			ns01#LocationId: vars.inputData.locationId default "",
+			ns01#Country: vars.inputData.countryCode default "",
+			ns01#Address1: vars.inputData.address1 default "",
+			ns01#Address2: vars.inputData.address2 default "",
+			ns01#Address3: vars.inputData.address3 default "",
+			ns01#Address4: vars.inputData.address4 default "",
+			ns01#City: vars.inputData.city default "",
+			ns01#State: vars.inputData.state default "",
+			ns01#County: vars.inputData.country default "",
+			ns01#PostalCode: vars.inputData.postalCode default ""
+		
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Update Location" doc:id="1c112bd5-07e1-4476-b348-687470e99a7d" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="updateLocation" doc:name="HTTP SOAP WebService - UpdateLocation Operation" doc:id="dffadf70-fc10-4f81-b8c9-af006c9ff527" config-ref="Web_Service_Consumer_Config_Location" />
+		<ee:transform doc:name="DW Mapping For Update Location Response" doc:id="e961962d-e6d3-4e5a-bde5-81009bbaa467" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.updateLocationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Update Location" doc:id="8f985c16-b535-42a2-ab0e-8c3610ef5410" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="9d6bd269-b8da-4eb6-a55f-722b4ddf72f6" message='Update Location For Address Id Flow Ended - #[vars.inputData.locationId default ""]' />
+	</sub-flow>
+	<sub-flow name="calix-crm-find-location-sub-flow" doc:id="38a973de-984b-4e00-94c0-2e41f180594f" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="d16f276a-4d33-4115-a1ec-1139a3128e4f" message='Find Location For Address Id Flow Started - #[vars.inputData.addressId default ""]' />
+		<ee:transform doc:name="DW Mapping For Find Location" doc:id="9ee4215b-37cb-49d9-a953-2c709fc7bc37" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/cdm/foundation/parties/locationService/applicationModule/types/
+ns ns01 http://xmlns.oracle.com/adf/svc/types/
+---
+{
+	ns0#findLocation: {
+		ns0#findCriteria: {
+			ns01#fetchStart: 0,
+			ns01#fetchSize: -1,
+			ns01#filter: {
+				ns01#group: {
+					ns01#upperCaseCompare: false,
+					ns01#item: {
+						ns01#upperCaseCompare: false,
+						ns01#attribute: "OrigSystemReference",
+						ns01#operator: "=",
+						ns01#value: "L_" ++ vars.inputData.addressId default ""
+					},
+					ns01#item: {
+						ns01#conjunction: "Or",
+						ns01#attribute: "OriginalSystemReference",
+						ns01#nested: {
+							ns01#group: {
+								ns01#item: {
+								ns01#attribute: "OrigSystemReference",
+								ns01#operator: "=",
+								ns01#value: "L_" ++ vars.inputData.addressId default ""
+							}
+						}
+					}
+				}
+			}
+		},
+		ns01#excludeAttribute: false
+	},
+	ns0#findControl: {
+		ns01#retrieveAllTranslations: true
+	}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Find Location" doc:id="da6c8bb8-1184-4ef5-bebc-e57d249b2523" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="findLocation" doc:name="HTTP SOAP WebService - FindLocation Operation" doc:id="81e78ea2-58e9-4da0-8b29-6acd51940c54" config-ref="Web_Service_Consumer_Config_Location" />
+		<ee:transform doc:name="DW Mapping For Find Location Response" doc:id="013b876b-4553-45c0-951c-8608fbdcb2d5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.findLocationResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Find Location" doc:id="5d37c4e2-0619-4467-813d-55dc2400536c" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="9353199c-650a-4865-a0c6-8ac1813b89a5" message='Find Location For Address Id Flow Ended - #[vars.inputData.addressId default ""]' />
+	</sub-flow>
+</mule>

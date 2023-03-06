@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="customer-profile-implementation-sub-flow" doc:id="445c3308-a5ee-41c6-90aa-c5e12de79236" >
+		<choice doc:name="Checking operation to be performed" doc:id="34398c45-2c56-4b5e-8d70-52876c0dffac" >
+			<when expression='#[vars.operation == "CreateCustomerProfile"]' >
+				<flow-ref doc:name="Refer to calix-crm-create-customer-profile-sub-flow" doc:id="cb618a4b-46da-4645-9f0f-855c9c48aa22" name="calix-crm-create-customer-profile-sub-flow" />
+			</when>
+			<when expression='#[vars.operation == "UpdateCustomerProfile"]' >
+				<flow-ref doc:name="Refer to calix-crm-update-customer-profile-sub-flow" doc:id="841cd1eb-48cc-406c-a32d-bf884daf68b3" name="calix-crm-update-customer-profile-sub-flow" />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="LOG INFO - Message" doc:id="7c44f808-ee1e-4007-993c-63343ef0e387" message="Invalid Operation For Customer Profile Flow" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="calix-crm-create-customer-profile-sub-flow" doc:id="49fa7a72-72af-4ee3-b220-4a60473e5bf3" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="8183ee12-1457-4b4a-ac3c-d885bc5295b1" message='Create New Customer Profile For Customer Account Id Flow Started - #[vars.inputData.customerAccountId default ""]' />
+		<ee:transform doc:name="DW Mapping For Create Customer Profile Request" doc:id="5f019ee6-a078-4a34-8b07-b168c51180a1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/types/
+ns ns1 http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/
+---
+{
+	ns0#createCustomerProfile: {
+		ns0#customerProfile: {
+			ns1#CustomerAccountId: vars.inputData.customerAccountId default "",
+			ns1#CreditHold: "N",
+			ns1#ProfileClassName: "DEFAULT",
+			ns1#PaymentTerms: if ( vars.inputData.paymentTerms == "Pre-Payment" ) "PRE-PAYMENT" else vars.inputData.paymentTerms default "",
+			ns1#PartyId: vars.inputData.partyId default ""
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Create Customer Profile" doc:id="d341a9ee-ddb1-4e78-963d-3423397844bd" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume doc:name="WebService Consume - CustomerProfile Operation" doc:id="9756da6c-63e5-474d-9793-23238fb48b5c" config-ref="Web_Service_Consumer_Config_CustomerProfile" operation="createCustomerProfile"/>
+		<ee:transform doc:name="DW Mapping For Create Customer Profile Response" doc:id="5daf62c1-1f3c-435f-84fa-a820620fd9e6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.createCustomerProfileResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Create Customer Profile " doc:id="4fbfd61a-6881-46cf-a3d1-285595136d25" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="70779d85-b371-48b1-b123-7d54cefdbbf6" message='Create New Customer Profile For Customer Account Id Flow Ended - #[vars.inputData.customerAccountId default ""]' />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76e7007f-9cc4-4d9c-b2a8-3e27f2c61f59" type="ANY">
+				<logger level="INFO" doc:name="LOG INFO - Message" doc:id="bb9502c8-4184-4d8d-9e87-ca0f97ea6e7f" message='#[output application/json --- error.suppressedErrors[0].muleMessage.typedValue default error.description]'/>
+				<set-payload value="#[output application/json --- error.suppressedErrors[0].muleMessage.typedValue default {}]" doc:name="Set Payload" doc:id="ba4bc325-6df9-4717-99cc-ea36c4250025" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<sub-flow name="calix-crm-update-customer-profile-sub-flow" doc:id="04561497-5da0-4bfc-bf08-464267ed17f5" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="143ae276-d2df-4de6-8980-8506eb34cf5a" message='Update Customer Profile For Customer Account Profile Id Flow Started - #[vars.inputData.customerAccountProfileId default ""]' />
+		<ee:transform doc:name="DW Mapping For Update Customer Profile Request" doc:id="b24817d7-5e29-4ff7-88d9-d734e63b62dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/types/
+ns ns1 http://xmlns.oracle.com/apps/financials/receivables/customers/customerProfileService/
+---
+{
+	ns0#updateCustomerProfile: {
+		ns0#customerProfile: {
+			ns1#CustomerAccountProfileId: vars.inputData.customerAccountProfileId default "",
+			//ns1#AccountNumber: vars.inputData.accountNumber default "",
+			ns1#PaymentTerms: if ( vars.inputData.paymentTerms == "Pre-Payment" ) "PRE-PAYMENT" else vars.inputData.paymentTerms default "",
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Update Customer Profile " doc:id="d1a560cf-d335-4f5d-a570-fe376fa1e576" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="updateCustomerProfile" doc:name="HTTP SOAP WebService - UpdateCustomerProfile Operation" doc:id="5c38b7c9-aa56-4a28-bac3-761fc8e00429" config-ref="Web_Service_Consumer_Config_CustomerProfile" />
+		<ee:transform doc:name="DW Mapping For Update Customer Profile Response" doc:id="d7869300-4803-400a-9bd8-30d06a2a5139" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.body.updateCustomerProfileResponse.result.Value]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Update Customer Profile" doc:id="76d9ece7-c760-4b84-a85c-9e5f6261c729" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="aad63491-e26c-42e0-a3f8-4eef3e78ad6b" message='Update Customer Profile For Customer Account Profile Id Flow Ended - #[vars.inputData.customerAccountProfileId default ""]' />
+	</sub-flow>
+</mule>

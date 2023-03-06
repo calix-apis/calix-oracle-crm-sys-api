@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<sub-flow name="calix-crm-externalwss-report-bip-service-sub-flow" doc:id="62af7eba-2205-4eb7-83f0-0bd4c7d8ed0c" >
+		<logger level="INFO" doc:name="LOG INFO - START" doc:id="7f8fb444-3052-41a1-9a9d-bbe1a98b5611" message='External BIP Run Report Service Call Flow Started For - #[vars.inputData.territoryName default ""]' />
+		<ee:transform doc:name="DW Mapping Request For Run Report" doc:id="b3e91bd1-787e-46e0-bbdd-49f68c8a853f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://xmlns.oracle.com/oxp/service/PublicReportService
+---
+{
+	ns0#runReport: {
+		ns0#reportRequest: {
+			ns0#parameterNameValues: {
+				ns0#item: {
+					ns0#name: "P_SALES_REP",
+					ns0#values: {
+						ns0#item: vars.inputData.territoryName default ""
+					}
+				}
+			},
+			ns0#reportAbsolutePath: "/Custom/Integrations/CERP_CUSTOMER_CREATE_NEW/CLX_SFDC_CUST_INT_SALESREP_REP.xdo",
+			ns0#sizeOfDataChunkDownload: "-1"
+		}
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Request For Run Report" doc:id="67d11361-3582-4da1-ba90-c8d72bd04917" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<wsc:consume operation="runReport" doc:name="HTTP SOAP WebService - RunReport Operation" doc:id="67517208-b0cd-4e45-9a77-b252c194a09d" config-ref="Web_Service_Consumer_Config_BIP_Report" />
+		<ee:transform doc:name="DW Mapping For Decode Binary Data" doc:id="c2959479-7a3f-4b1c-8543-2b274c3f6667" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json 
+import fromBase64 from dw::core::Binaries
+var encodedData= payload.body.runReportResponse.runReportReturn.reportBytes
+--- 
+read(fromBase64(encodedData),"application/xml")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="LOG DEBUG - SOAP Response For Run Report" doc:id="256c28b4-3bab-4603-a756-523e7d3a4eb1" message="#[payload]" category="com.mulesoft.logging.calix.data" />
+		<logger level="INFO" doc:name="LOG INFO - END" doc:id="67569ab0-e329-49da-8212-33b017cedebd" message='External BIP Run Report Service Call Flow Ended For - #[vars.inputData.territoryName default ""]' />
+	</sub-flow>
+</mule>

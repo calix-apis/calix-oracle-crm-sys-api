@@ -1,0 +1,4 @@
+{
+  "minMuleVersion": "4.4.0",
+  "secureProperties": ["secure::oracle.username","secure::oracle.password","application.runtime.key"]
+}

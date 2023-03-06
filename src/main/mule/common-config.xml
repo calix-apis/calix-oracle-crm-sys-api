@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="f91b8ebf-7476-4512-bf09-db578afda28e" flowRef="calix-oracle-crm-sys-api-main" />
+	<import doc:name="Import" doc:id="e04e6b5b-e640-41b4-9eca-85a6526b3fe6" file="apisero-generic-error-handler.xml" />
+	<http:listener-config name="calix-oracle-crm-sys-api-httpListenerConfig" doc:name="HTTP Listener config" doc:id="431e2a3c-75db-4741-8ddc-add91e6452a5" >
+		<http:listener-connection host="${http.host}" port="${http.port}" />
+	</http:listener-config>
+	    <apikit:config name="calix-oracle-crm-sys-api-config" api="calix-oracle-crm-sys-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<global-property doc:name="Global Property" doc:id="b2a71540-5ec3-451b-a974-f818cde690e9" name="mule.env" value="dev" />
+	<secure-properties:config name="Secure_Properties_Config1" doc:name="Secure Properties Config" doc:id="a50fcc2b-eae2-496f-be18-151760106473" file="properties\calix-oracle-crm-sys-api-secure-${mule.env}.yaml" key="${application.runtime.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<wsc:config name="Contact_Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="7f46c5ca-4a05-45d1-8bf8-ddf2a129b435" >
+		<wsc:connection wsdlLocation="${oracle-web-service.person.wsdl}" service="${oracle-web-service.person.service}" port="${oracle-web-service.person.port}" address="${oracle-web-service.person.address}">
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<http:request-config name="HTTP_Oracle_Request_configuration" doc:name="HTTP Request configuration" doc:id="d569f81b-add1-423b-94e0-2909ee0faa8f">
+		<http:request-connection >
+			<http:authentication >
+				<http:basic-authentication username="${secure::oracle-web-service.username}" password="${secure::oracle-web-service.password}" />
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="a3a42a99-4cb4-4ede-87f4-62cf334572ef" file="properties\calix-oracle-crm-sys-api-${mule.env}.yaml" />
+	<wsc:config name="Web_Service_Consumer_Config_Customer" doc:name="Web Service Consumer Config" doc:id="7f99438d-b234-4406-b20f-a39e566cbc6e" >
+		<wsc:connection wsdlLocation="${oracle-web-service.customer.wsdl}" service="${oracle-web-service.customer.service}" port="${oracle-web-service.customer.port}" address="${oracle-web-service.customer.address}" >
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_Organization" doc:name="Web Service Consumer Config" doc:id="d0f4b5c3-ad2e-4548-b882-59160cae91d9" >
+		<wsc:connection wsdlLocation="${oracle-web-service.organization.wsdl}" service="${oracle-web-service.organization.service}" port="${oracle-web-service.organization.port}" address="${oracle-web-service.organization.address}" >
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_Location" doc:name="Web Service Consumer Config" doc:id="b6c5074d-523f-4374-a23e-06c2cee6b0a3" >
+		<wsc:connection wsdlLocation="${oracle-web-service.location.wsdl}" service="${oracle-web-service.location.service}" port="${oracle-web-service.location.port}" address="${oracle-web-service.location.address}" >
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_BIP_Report" doc:name="Web Service Consumer Config" doc:id="74a0cce6-cf89-4a7e-9d58-ffb2131bc811" >
+		<wsc:connection wsdlLocation="${oracle-web-service.report.wsdl}" service="${oracle-web-service.report.service}" port="${oracle-web-service.report.port}" address="${oracle-web-service.report.address}" soapVersion="SOAP12">
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	<wsc:config name="Web_Service_Consumer_Config_CustomerProfile" doc:name="Web Service Consumer Config" doc:id="36566d07-6886-4aa6-b99f-cf8b82b87d8d" >
+		<wsc:connection wsdlLocation="${oracle-web-service.customerprofile.wsdl}" service="${oracle-web-service.customerprofile.service}" port="${oracle-web-service.customerprofile.port}" address="${oracle-web-service.customerprofile.address}">
+			<wsc:custom-transport-configuration >
+				<wsc:http-transport-configuration requesterConfig="HTTP_Oracle_Request_configuration" />
+			</wsc:custom-transport-configuration>
+		</wsc:connection>
+	</wsc:config>
+	
+</mule>
